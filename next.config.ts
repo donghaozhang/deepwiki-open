@@ -4,7 +4,8 @@ const TARGET_SERVER_BASE_URL = process.env.SERVER_BASE_URL || 'http://localhost:
 
 const nextConfig: NextConfig = {
   /* config options here */
-  output: 'standalone',
+  // Use standalone output for Docker, but not for Vercel
+  ...(process.env.DOCKER_BUILD === 'true' && { output: 'standalone' }),
   // Optimize build for Docker
   experimental: {
     optimizePackageImports: ['@mermaid-js/mermaid', 'react-syntax-highlighter'],
