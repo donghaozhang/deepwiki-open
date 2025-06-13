@@ -1,40 +1,8 @@
 {
-  "functions": {
-    "src/app/api/**/*.ts": {
-      "runtime": "@vercel/node"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/wiki_cache/:path*",
-      "destination": "https://your-backend-url.com/api/wiki_cache/:path*"
-    },
-    {
-      "source": "/export/wiki/:path*", 
-      "destination": "https://your-backend-url.com/export/wiki/:path*"
-    },
-    {
-      "source": "/api/wiki_cache",
-      "destination": "https://your-backend-url.com/api/wiki_cache"
-    },
-    {
-      "source": "/local_repo/structure",
-      "destination": "https://your-backend-url.com/local_repo/structure"
-    },
-    {
-      "source": "/api/auth/status",
-      "destination": "https://your-backend-url.com/auth/status"
-    },
-    {
-      "source": "/api/auth/validate", 
-      "destination": "https://your-backend-url.com/auth/validate"
-    },
-    {
-      "source": "/api/lang/config",
-      "destination": "https://your-backend-url.com/lang/config"
-    }
-  ],
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
   "env": {
-    "SERVER_BASE_URL": "https://your-backend-url.com"
+    "NODE_ENV": "production",
+    "SERVER_BASE_URL": "http://localhost:8001"
   }
 } 
