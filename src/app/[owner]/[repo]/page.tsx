@@ -436,19 +436,25 @@ Remember:
         // Use WebSocket for communication
         let content = '';
 
-        try {
-          // Create WebSocket URL from the server base URL
-          const serverBaseUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL || 'http://localhost:8001';
-          const wsBaseUrl = serverBaseUrl.replace(/^http/, 'ws');
-          const wsUrl = `${wsBaseUrl}/ws/chat`;
+              try {
+        // Create WebSocket URL from the server base URL
+        const serverBaseUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL || 'http://127.0.0.1:8001';
+        const wsBaseUrl = serverBaseUrl.replace(/^http/, 'ws');
+        const wsUrl = `${wsBaseUrl}/ws/chat`;
 
           // Create a new WebSocket connection
           const ws = new WebSocket(wsUrl);
 
           // Create a promise that resolves when the WebSocket connection is complete
           await new Promise<void>((resolve, reject) => {
+            // If the connection doesn't open within 5 seconds, fall back to HTTP
+            const timeout = setTimeout(() => {
+              reject(new Error('WebSocket connection timeout'));
+            }, 5000);
+
             // Set up event handlers
             ws.onopen = () => {
+              clearTimeout(timeout);
               console.log(`WebSocket connection established for page: ${page.title}`);
               // Send the request as JSON
               ws.send(JSON.stringify(requestBody));
@@ -456,22 +462,9 @@ Remember:
             };
 
             ws.onerror = (error) => {
+              clearTimeout(timeout);
               console.error('WebSocket error:', error);
               reject(new Error('WebSocket connection failed'));
-            };
-
-            // If the connection doesn't open within 5 seconds, fall back to HTTP
-            const timeout = setTimeout(() => {
-              reject(new Error('WebSocket connection timeout'));
-            }, 5000);
-
-            // Clear the timeout if the connection opens successfully
-            ws.onopen = () => {
-              clearTimeout(timeout);
-              console.log(`WebSocket connection established for page: ${page.title}`);
-              // Send the request as JSON
-              ws.send(JSON.stringify(requestBody));
-              resolve();
             };
           });
 
@@ -730,7 +723,7 @@ IMPORTANT:
 
       try {
         // Create WebSocket URL from the server base URL
-        const serverBaseUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL || 'http://localhost:8001';
+        const serverBaseUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL || 'http://127.0.0.1:8001';
         const wsBaseUrl = serverBaseUrl.replace(/^http/, 'ws');
         const wsUrl = `${wsBaseUrl}/ws/chat`;
 
@@ -739,8 +732,14 @@ IMPORTANT:
 
         // Create a promise that resolves when the WebSocket connection is complete
         await new Promise<void>((resolve, reject) => {
+          // If the connection doesn't open within 5 seconds, fall back to HTTP
+          const timeout = setTimeout(() => {
+            reject(new Error('WebSocket connection timeout'));
+          }, 5000);
+
           // Set up event handlers
           ws.onopen = () => {
+            clearTimeout(timeout);
             console.log('WebSocket connection established for wiki structure');
             // Send the request as JSON
             ws.send(JSON.stringify(requestBody));
@@ -748,22 +747,9 @@ IMPORTANT:
           };
 
           ws.onerror = (error) => {
+            clearTimeout(timeout);
             console.error('WebSocket error:', error);
             reject(new Error('WebSocket connection failed'));
-          };
-
-          // If the connection doesn't open within 5 seconds, fall back to HTTP
-          const timeout = setTimeout(() => {
-            reject(new Error('WebSocket connection timeout'));
-          }, 5000);
-
-          // Clear the timeout if the connection opens successfully
-          ws.onopen = () => {
-            clearTimeout(timeout);
-            console.log('WebSocket connection established for wiki structure');
-            // Send the request as JSON
-            ws.send(JSON.stringify(requestBody));
-            resolve();
           };
         });
 
