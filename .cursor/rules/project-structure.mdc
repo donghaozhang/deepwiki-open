@@ -1,0 +1,97 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# DeepWiki-Open Project Structure Guide
+
+## Directory Structure
+```
+deepwiki-open/
+├── api/                    # Backend FastAPI application
+│   ├── main.py            # Entry point for backend server
+│   ├── api.py             # FastAPI routes and endpoints
+│   ├── config.py          # Configuration loading (UTF-8 encoding fixes)
+│   ├── websocket_wiki.py  # WebSocket handling for real-time communication
+│   ├── data_pipeline.py   # Repository processing and analysis
+│   ├── rag.py             # Retrieval-Augmented Generation logic
+│   ├── requirements.txt   # Python dependencies
+│   └── config/
+│       └── lang.json      # Language configuration (UTF-8 encoded)
+├── src/                   # Frontend Next.js application
+│   ├── app/
+│   │   ├── page.tsx       # Main landing page
+│   │   ├── layout.tsx     # Root layout component
+│   │   └── [owner]/[repo]/
+│   │       └── page.tsx   # Dynamic wiki page (WebSocket fixes applied)
+│   ├── components/        # Reusable React components
+│   └── messages/          # Internationalization files
+├── .env                   # Environment variables (API keys)
+├── package.json           # Frontend dependencies and scripts
+├── next.config.js         # Next.js configuration
+└── docker-compose.yml     # Docker setup (alternative to manual)
+```
+
+## Key Entry Points
+
+### Backend ([api/main.py](mdc:api/main.py))
+- Starts FastAPI server on port 8001
+- Loads configuration from [api/config.py](mdc:api/config.py)
+- Registers routes from [api/api.py](mdc:api/api.py)
+
+### Frontend ([src/app/page.tsx](mdc:src/app/page.tsx))
+- Main landing page for repository input
+- Handles repository URL validation
+- Redirects to wiki generation page
+
+### Wiki Generation ([src/app/[owner]/[repo]/page.tsx](mdc:src/app/[owner]/[repo]/page.tsx))
+- Dynamic route for specific repositories
+- WebSocket communication with backend
+- Real-time wiki content generation
+- **Contains WebSocket fixes for IPv4 connectivity**
+
+## API Endpoints ([api/api.py](mdc:api/api.py))
+- `GET /` - API status and available endpoints
+- `POST /chat/completions/stream` - Streaming chat completions
+- `WebSocket /ws/chat` - Real-time wiki generation
+- `GET /api/processed_projects` - List cached projects
+- `GET /lang/config` - Language configuration
+- `GET /auth/status` - Authentication status
+
+## Configuration Files
+
+### Environment ([.env](mdc:.env))
+Required API keys for AI services:
+- `GOOGLE_API_KEY` - Google AI services
+- `OPENAI_API_KEY` - OpenAI GPT models
+- `OPENROUTER_API_KEY` - OpenRouter API (optional)
+- `OLLAMA_HOST` - Local Ollama instance (optional)
+
+### Backend Config ([api/config.py](mdc:api/config.py))
+- Loads JSON configuration files with UTF-8 encoding
+- Handles environment variable substitution
+- **Fixed encoding issues for Windows compatibility**
+
+### Language Config ([api/config/lang.json](mdc:api/config/lang.json))
+- Multi-language support configuration
+- Contains Unicode characters (Japanese, Chinese, Korean)
+- **Must be read with UTF-8 encoding**
+
+## Development Workflow
+
+### Starting Development Servers
+1. **Backend**: `python -m api.main` (from project root)
+2. **Frontend**: `npm run dev` (from project root)
+
+### Common Development Tasks
+- **Add new API endpoint**: Edit [api/api.py](mdc:api/api.py)
+- **Modify wiki generation**: Edit [src/app/[owner]/[repo]/page.tsx](mdc:src/app/[owner]/[repo]/page.tsx)
+- **Update configuration**: Edit [api/config.py](mdc:api/config.py) or [.env](mdc:.env)
+- **Add new language**: Update [api/config/lang.json](mdc:api/config/lang.json)
+
+## Important Notes
+- WebSocket connections use IPv4 (`127.0.0.1`) instead of `localhost`
+- All file operations use UTF-8 encoding for Windows compatibility
+- Frontend runs on port 3000, backend on port 8001
+- Repository data is cached in `~/.adalflow/wikicache/`
+

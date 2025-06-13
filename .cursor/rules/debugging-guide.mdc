@@ -1,0 +1,166 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# DeepWiki-Open Debugging Guide
+
+## Common Error Patterns and Solutions
+
+### Backend Errors
+
+#### UTF-8 Encoding Error
+```
+Error loading configuration file lang.json: 'charmap' codec can't decode byte 0x81
+```
+**Location**: [api/config.py](mdc:api/config.py) line 103
+**Fix**: Ensure file opening uses UTF-8 encoding:
+```python
+with open(config_path, 'r', encoding='utf-8') as f:
+```
+
+#### Repository Not Found Error
+```
+ERROR - Failed to create repository structure: Error during cloning
+remote: Repository not found.
+```
+**Cause**: Invalid or non-existent repository URL
+**Solution**: Verify repository URL format and accessibility
+
+#### Port Already in Use
+```
+OSError: [Errno 98] Address already in use
+```
+**Solutions**:
+1. Kill existing process: `taskkill /F /IM python.exe`
+2. Change port in [api/main.py](mdc:api/main.py)
+3. Check running processes: `netstat -an | findstr "8001"`
+
+### Frontend Errors
+
+#### WebSocket Connection Failed
+```
+WebSocket error: {}
+WebSocket connection failed
+```
+**Location**: [src/app/[owner]/[repo]/page.tsx](mdc:src/app/[owner]/[repo]/page.tsx)
+**Fixes Applied**:
+1. Use `127.0.0.1` instead of `localhost`
+2. Remove duplicate event handler assignments
+3. Proper timeout handling
+
+#### Port 3000 Already in Use
+```
+Error: listen EADDRINUSE: address already in use :::3000
+```
+**Solutions**:
+1. Kill Node processes: `taskkill /F /IM node.exe`
+2. Use different port: `npm run dev -- --port 3001`
+3. Find process using port: `netstat -ano | findstr :3000`
+
+#### Module Not Found
+```
+Module not found: Can't resolve 'package-name'
+```
+**Solutions**:
+1. Install dependencies: `npm install`
+2. Clear cache: `npm cache clean --force`
+3. Delete node_modules and reinstall: `rm -rf node_modules && npm install`
+
+## Debugging Tools and Commands
+
+### Backend Debugging
+```bash
+# Check backend server status
+curl http://localhost:8001
+
+# View backend logs
+python -m api.main
+
+# Test WebSocket connection
+curl -I http://localhost:8001/ws/chat
+```
+
+### Frontend Debugging
+```bash
+# Check frontend status
+curl http://localhost:3000
+
+# View detailed build output
+npm run dev
+
+# Check for TypeScript errors
+npx tsc --noEmit
+```
+
+### System Debugging
+```bash
+# Check running processes
+netstat -an | findstr "3000\|8001"
+
+# Kill specific processes
+taskkill /F /PID <process_id>
+
+# Check Python/Node versions
+python --version
+node --version
+npm --version
+```
+
+## Log Analysis
+
+### Backend Log Patterns
+- `INFO - Uvicorn running on http://0.0.0.0:8001` - Server started successfully
+- `INFO - WebSocket connection established` - WebSocket working
+- `ERROR - Failed to create repository structure` - Repository access issue
+- `ERROR - ValueError preparing retriever` - Data processing error
+
+### Frontend Log Patterns
+- `✓ Ready in XXXXms` - Frontend started successfully
+- `GET / 200` - Page loaded successfully
+- `WebSocket error: {}` - WebSocket connection issue
+- `404` errors - Missing API endpoints or static files
+
+## Performance Monitoring
+
+### Key Metrics to Watch
+- **Backend startup time**: Should be under 10 seconds
+- **Frontend build time**: Should be under 30 seconds
+- **WebSocket connection time**: Should be under 5 seconds
+- **Repository processing time**: Varies by repository size
+
+### Memory Usage
+- **Backend**: Monitor Python process memory
+- **Frontend**: Monitor Node.js process memory
+- **Cache**: Check `~/.adalflow/wikicache/` size
+
+## Environment Validation
+
+### Required Environment Variables
+Check [.env](mdc:.env) contains:
+```bash
+GOOGLE_API_KEY=your_key_here
+OPENAI_API_KEY=your_key_here
+# Optional:
+OPENROUTER_API_KEY=your_key_here
+OLLAMA_HOST=your_host_here
+```
+
+### Dependency Validation
+```bash
+# Backend dependencies
+pip list | grep -E "(fastapi|uvicorn|adalflow)"
+
+# Frontend dependencies
+npm list | grep -E "(next|react|typescript)"
+```
+
+## Quick Health Check Script
+```bash
+# Check if both servers are running
+echo "Checking backend..."
+curl -s http://localhost:8001 | grep -q "Welcome to Streaming API" && echo "✅ Backend OK" || echo "❌ Backend Failed"
+
+echo "Checking frontend..."
+curl -s http://localhost:3000 | grep -q "html" && echo "✅ Frontend OK" || echo "❌ Frontend Failed"
+```

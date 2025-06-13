@@ -1,0 +1,77 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# DeepWiki-Open Setup and Common Issues
+
+## Project Overview
+DeepWiki-Open is an AI-powered tool that automatically creates interactive wikis for GitHub, GitLab, or BitBucket repositories. It consists of a FastAPI backend and Next.js frontend.
+
+## Architecture
+- **Backend**: FastAPI server on port 8001 ([api/main.py](mdc:api/main.py))
+- **Frontend**: Next.js application on port 3000 ([src/app/page.tsx](mdc:src/app/page.tsx))
+- **Configuration**: Environment variables in [.env](mdc:.env)
+- **API Configuration**: [api/config.py](mdc:api/config.py)
+
+## Manual Setup Process
+1. **Backend Setup**:
+   ```bash
+   cd api && pip install -r requirements.txt
+   python -m api.main
+   ```
+
+2. **Frontend Setup**:
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+## Common Issues and Fixes
+
+### UTF-8 Encoding Error
+**Problem**: `'charmap' codec can't decode byte 0x81 in position 165` when reading [api/config/lang.json](mdc:api/config/lang.json)
+
+**Solution**: In [api/config.py](mdc:api/config.py), ensure file opening uses UTF-8 encoding:
+```python
+with open(config_path, 'r', encoding='utf-8') as f:
+```
+
+### WebSocket Connection Issues
+**Problem**: WebSocket errors in frontend, connection timeouts
+
+**Solutions**:
+1. Use IPv4 address (`127.0.0.1`) instead of `localhost` to avoid IPv6 issues
+2. Fix duplicate event handler assignments in WebSocket code
+3. Proper timeout handling in [src/app/[owner]/[repo]/page.tsx](mdc:src/app/[owner]/[repo]/page.tsx)
+
+### Port Conflicts
+**Problem**: `EADDRINUSE: address already in use :::3000`
+
+**Solutions**:
+1. Kill existing processes: `taskkill /F /IM node.exe`
+2. Use alternative port: `npm run dev -- --port 3001`
+3. Check running processes: `netstat -an | findstr "3000"`
+
+## Key Files to Monitor
+- [api/config.py](mdc:api/config.py) - Configuration loading with encoding fixes
+- [src/app/[owner]/[repo]/page.tsx](mdc:src/app/[owner]/[repo]/page.tsx) - Main wiki page with WebSocket handling
+- [api/api.py](mdc:api/api.py) - FastAPI routes and WebSocket endpoints
+- [package.json](mdc:package.json) - Frontend dependencies and scripts
+- [api/requirements.txt](mdc:api/requirements.txt) - Backend Python dependencies
+
+## Testing WebSocket Connectivity
+Use this test to verify WebSocket connections:
+```javascript
+const ws = new WebSocket('ws://127.0.0.1:8001/ws/chat');
+ws.onopen = () => console.log('✅ WebSocket connected');
+ws.onerror = (error) => console.error('❌ WebSocket error:', error);
+```
+
+## Environment Requirements
+- Python 3.8+ with pip
+- Node.js 18+ with npm
+- Required API keys in [.env](mdc:.env):
+  - `GOOGLE_API_KEY`
+  - `OPENAI_API_KEY`
+  - Optional: `OPENROUTER_API_KEY`, `OLLAMA_HOST`
